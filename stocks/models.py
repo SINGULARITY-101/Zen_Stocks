@@ -3,6 +3,54 @@ from django.conf import settings    # Use this instead of importing user directl
 
 
 
+"""
+MODEL DIAGRAM
+                    +-----------+
+                    |   USER    |
+                    +-----------+
+                    | id (PK)   |
+                    | username  |
+                    +-----------+
+                     /    |    \
+                    /     |     \
+                   /      |      \
+                  /       |       \
+                 /        |        \
+                /         |         \
+               v          v          v
+
+      +---------------+  +-------------------+  +---------------+
+      | WATCHLISTITEM |  | PORTFOLIOHOLDING  |  |  PRICEALERT   |
+      +---------------+  +-------------------+  +---------------+
+      | id (PK)       |  | id (PK)           |  | id (PK)       |
+      | user_id (FK)  |  | user_id (FK)      |  | user_id (FK)  |
+      | stock_id (FK) |  | stock_id (FK)     |  | stock_id (FK) |
+      | added_at      |  | shares            |  | target_price  |
+      +---------------+  | avg_cost          |  | direction     |
+                         +-------------------+  | is_active     |
+                                                +---------------+
+                ^          ^          ^ 
+                 \         |         /
+                  \        |        /
+                   \       |       /
+                    \      |      /
+                     \     |     /
+                      \    |    /
+                           
+
+                    +-----------+
+                    |   STOCK   |
+                    +-----------+
+                    | id (PK)   |
+                    | ticker    |
+                    | name      |
+                    +-----------+
+
+
+
+"""
+
+
 
 
 
@@ -33,7 +81,7 @@ class WatchlistItem(models.Model) :
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,            # Points to Django's User model (auth-safe pattern)
         on_delete = models.CASCADE,          # If user is deleted, remove their watchlist too
-        related_name = 'watchlist'           # lets you do user.watchlist.all() later
+        related_name = 'watchlist'           # lets you walk the relationship backwards : user.watchlist.all() later
     )
     
     
@@ -46,7 +94,9 @@ class WatchlistItem(models.Model) :
     
     
     # Field 3
-    added_at = models.DateTimeField(auto_now_add = True)    # Auto-set when row is created
+    added_at = models.DateTimeField(auto_now_add = True)    # Auto-set when row is created and never touch it again
+                                                            # Its brother : `auto_now = True` updates on every save
+    
     
     
     
