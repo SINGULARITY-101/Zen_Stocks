@@ -15,4 +15,6 @@ The path() function defines the following:
 
 urlpatterns = [
     path('signup/', views.signup_view, name='signup'),
+    path('', views.home, name = 'home'), 
+    path('dashboard/', views.dashboard, name = 'dashboard')
 ]

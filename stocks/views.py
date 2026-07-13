@@ -1,6 +1,9 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login  # logs a user in by attaching them to the session
+from django.contrib.auth.decorators import login_required
 from .forms import SignUpForm  # the form we just built
+
+from django.http import HttpResponse
 
 
 
@@ -76,3 +79,29 @@ def home(request) :
 
     # If we reach this line, the user is NOT logged in — show the public home page.
     return render(request, 'stocks/home.html')
+
+
+
+
+
+
+
+
+
+
+
+
+"""
+dashboard view
+- Opens when the user 
+    - Logs In  
+"""
+
+# This decorator ensures that django checks if the user is authenticated BEFORE every running the dashboard function's code
+    # If they are logged in → dashboard runs normally
+    # If they're not → Django auto-redirects them to your login page, and dashboard's code never executes at all 
+@login_required
+def dashboard(request) : 
+    # request.user.username is available because Django's auth system resolved who this user is
+    # before the function even runs
+    return HttpResponse(f"Welcome to your dashboard : {request.user.username}!")
