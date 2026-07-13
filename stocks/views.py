@@ -38,9 +38,9 @@ def signup_view(request):
             # to manually go log in right after signing up. Better UX to skip that step.
             login(request, user)
 
-            # Redirect to home after successful signup + login.
+            # Redirect to dashboard after successful signup + login.
             # Using redirect() (not render()) is deliberate — see note below.
-            return redirect('home')
+            return redirect('dashboard')
         # If form.is_valid() is False, we fall through to the render() at the bottom,
         # which re-shows the form — now populated with Django's validation error messages.
     else:
@@ -50,3 +50,29 @@ def signup_view(request):
 
     # This line runs for: GET requests, AND failed POST requests (falls through from above)
     return render(request, 'registration/signup.html', {'form': form})
+
+
+
+
+
+
+
+
+
+"""
+home view 
+- Rendered when 
+    - the user first lands on the wesbite without logging in OR 
+    - when they log out 
+"""
+
+def home(request) : 
+    # request.user is Django's way of telling us who's making this request.
+    # is_authenticated is a boolean: True if someone is logged in, False if anonymous.
+    if request.user.is_authenticated : 
+        # Bounce logged-in users straight to their dashboard
+        # 'dashboard' here is a URL NAME (defined in urls.py)
+        return redirect('dashboard')
+
+    # If we reach this line, the user is NOT logged in — show the public home page.
+    return render(request, 'stocks/home.html')
