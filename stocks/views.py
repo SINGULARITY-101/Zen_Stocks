@@ -10,7 +10,7 @@ from django.http import HttpResponse
 # Create your views here.
 
 """
-singup_view
+signup_view
 - Django does not ship with a singup view because "how to create a user" varies per project
 - A simple function-based view is the standard choice because we don't need the extra structure a class-based view brings
 

@@ -193,3 +193,80 @@ class PriceAlert(models.Model):
 
     def __str__(self):
         return f"{self.user.username}: alert if {self.stock.ticker} goes {self.direction} ${self.target_price}"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# --- STOCK PRICES ---
+
+# Holds the current price of a stock 
+class StockPriceCache(models.Model) : 
+    # OneToOne, not ForeignKey — each Stock gets exactly ONE current-price row,
+    # never multiple. ForeignKey would technically allow duplicates for the same
+    # stock, which makes no sense for "the current price."
+    stock = models.OneToOneField(Stock, on_delete = models.CASCADE)
+    
+
+    # DecimalField, not FloatField — prices should never use floating point,
+    # since floats introduce rounding errors (e.g. 19.999999999 instead of 20.00).
+    # max_digits=10, decimal_places=2 → supports up to 99,999,999.99
+    price = models.DecimalField(max_digits=10, decimal_places = 2)
+    
+    # `auto_now = True` updates the row on every save
+    last_updated = models.DateField(auto_now = True)
+    
+    def __str__(self):
+        return f"{self.stock.ticker} @ {self.price} ({self.last_updated})"
+    
+    
+    
+    
+    
+# Holds the historical price data of a stock 
+class StockHistoryCache(models.Model) : 
+    # ForeignKey (not OneToOne) — deliberately allows MULTIPLE rows per stock,
+    # because each (stock, range) pair is its own row. AAPL/"1W" and AAPL/"1Y"
+    # are two separate rows here.
+    stock = models.ForeignKey(Stock, on_delete = models.CASCADE)
+    
+    
+    RANGE_CHOICES = [
+        ('1W', '1 Week'), 
+        ('1M', '1 Month'), 
+        ('6M', '6 Months'), 
+        ('1Y', '1 Year'), 
+    ]    
+    
+    range = models.CharField(max_length = 2, choices = RANGE_CHOICES)
+    
+    
+    data = models.JSONField()
+    
+    
+    last_updated = models.DateField(auto_now = True)
+    
+    
+    
+    class Meta : 
+        unique_together = ('stock', 'range')
+        
+    
+    def __str__(self) : 
+        return f"{self.stock.ticker} - {self.range} ({self.last_updated})"
