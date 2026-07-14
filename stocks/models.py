@@ -36,7 +36,6 @@ MODEL DIAGRAM
                     \      |      /
                      \     |     /
                       \    |    /
-                           
 
                     +-----------+
                     |   STOCK   |
@@ -45,8 +44,23 @@ MODEL DIAGRAM
                     | ticker    |
                     | name      |
                     +-----------+
+                     ^         ^
+                    /           \
+                   /             \
+                  /               \
+                 /                 \
 
-
+  +---------------------+   +------------------------+
+  |  STOCKPRICECACHE     |   |  STOCKHISTORYCACHE     |
+  +---------------------+   +------------------------+
+  | id (PK)              |   | id (PK)                 |
+  | stock_id (FK, 1-to-1)|   | stock_id (FK)           |
+  | price                |   | range (1W/1M/6M/1Y)     |
+  | last_updated         |   | data (JSON)             |
+  +---------------------+    | last_updated            |
+                             +------------------------+
+                             unique_together:
+                             (stock_id, range)
 
 """
 
@@ -218,9 +232,8 @@ class PriceAlert(models.Model):
 
 # Holds the current price of a stock 
 class StockPriceCache(models.Model) : 
-    # OneToOne, not ForeignKey — each Stock gets exactly ONE current-price row,
-    # never multiple. ForeignKey would technically allow duplicates for the same
-    # stock, which makes no sense for "the current price."
+    # OneToOne, not ForeignKey — each Stock gets exactly ONE current-price row, never multiple. ForeignKey would 
+    # technically allow duplicates for the same stock, which makes no sense for "the current price."
     stock = models.OneToOneField(Stock, on_delete = models.CASCADE)
     
 
@@ -241,30 +254,31 @@ class StockPriceCache(models.Model) :
     
 # Holds the historical price data of a stock 
 class StockHistoryCache(models.Model) : 
-    # ForeignKey (not OneToOne) — deliberately allows MULTIPLE rows per stock,
-    # because each (stock, range) pair is its own row. AAPL/"1W" and AAPL/"1Y"
-    # are two separate rows here.
+    # ForeignKey (not OneToOne) — deliberately allows MULTIPLE rows per stock, because each (stock, range) pair is its own row. 
+    # AAPL/"1W" and AAPL/"1Y" are two separate rows here.
     stock = models.ForeignKey(Stock, on_delete = models.CASCADE)
     
     
+    # A fixed set of allowed values — 'choices' restricts what can be saved here,
+    # catching typos like "1w" vs "1W" at the database/form level rather than silently accepting garbage.
     RANGE_CHOICES = [
         ('1W', '1 Week'), 
         ('1M', '1 Month'), 
         ('6M', '6 Months'), 
         ('1Y', '1 Year'), 
     ]    
-    
     range = models.CharField(max_length = 2, choices = RANGE_CHOICES)
     
-    
+    # JSONField stores the actual time-series data as JSON
     data = models.JSONField()
-    
     
     last_updated = models.DateField(auto_now = True)
     
     
     
     class Meta : 
+        # Enforces at the database level: only ONE row can exist for a given (stock, range) combination. 
+        # Prevents duplicate/conflicting cache rows for the same stock+range pair.
         unique_together = ('stock', 'range')
         
     
