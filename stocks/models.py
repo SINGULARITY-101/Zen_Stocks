@@ -73,7 +73,7 @@ MODEL DIAGRAM
 # One row per ticker. Multiple users can reference the same row.
 
 class Stock(models.Model) : 
-    ticker = models.CharField(max_length=10, unique=True)   # e.g. "AAPL" — unique enforced at DB level
+    ticker = models.CharField(max_length=20, unique=True)   # e.g. "AAPL" — unique enforced at DB level
     name = models.CharField(max_length=255)                 # e.g. "Apple Inc."
 
     
@@ -243,7 +243,7 @@ class StockPriceCache(models.Model) :
     price = models.DecimalField(max_digits=10, decimal_places = 2)
     
     # `auto_now = True` updates the row on every save
-    last_updated = models.DateField(auto_now = True)
+    last_updated = models.DateTimeField(auto_now = True)
     
     def __str__(self):
         return f"{self.stock.ticker} @ {self.price} ({self.last_updated})"
@@ -272,7 +272,7 @@ class StockHistoryCache(models.Model) :
     # JSONField stores the actual time-series data as JSON
     data = models.JSONField()
     
-    last_updated = models.DateField(auto_now = True)
+    last_updated = models.DateTimeField(auto_now = True)
     
     
     
