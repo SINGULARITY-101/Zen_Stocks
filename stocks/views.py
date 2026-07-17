@@ -1,9 +1,15 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login  # logs a user in by attaching them to the session
 from django.contrib.auth.decorators import login_required
-from .forms import SignUpForm  # the form we just built
-
 from django.http import HttpResponse
+
+
+from .forms import SignUpForm  # the form we just built
+from .models import Stock
+from .services import get_current_price, get_price_history, fetch_stock_name # all api calls exist here
+
+
+
 
 
 
@@ -93,8 +99,11 @@ def home(request) :
 
 """
 dashboard view
-- Opens when the user 
-    - Logs In  
+- Opens when the user Logs In. It aggregates a specific user's data  
+- Contains : 
+    - UserPinned Stocks 
+    - User Portfolio 
+    - Price Alerts
 """
 
 # This decorator ensures that django checks if the user is authenticated BEFORE every running the dashboard function's code
@@ -105,3 +114,58 @@ def dashboard(request) :
     # request.user.username is available because Django's auth system resolved who this user is
     # before the function even runs
     return HttpResponse(f"Welcome to your dashboard : {request.user.username}!")
+
+
+
+
+
+
+
+
+
+
+
+
+
+"""
+stock_detail view
+- Displays a specific stock's data. Contains the chart and the prices 
+- Executed when : 
+    - User selects a stock from the search 
+    - User selects a stock from their dashboard 
+    
+"""
+
+
+
+def stock_detail(request, ticker) : 
+    # this is the FIRST time a Stock row might come into existence for this ticker.
+    stock, created = Stock.objects.get_or_create(
+        ticker=ticker,
+        defaults={'name': ticker}  # temporary placeholder name, replaced below if newly created
+    )
+    
+    
+    if created : 
+        # Only spend the extra yfinance call getting the proper long name if this Stock row didn't already exist. 
+        # Existing stocks already have a real name — no need to re-fetch it every visit.
+        long_name = fetch_stock_name(ticker)
+        if long_name:
+            stock.name = long_name
+            stock.save()
+
+
+
+    # Pull current price + a default range of history, using the service layer we already built and tested 
+    price, price_is_stale = get_current_price(stock)
+    history, history_is_stale = get_price_history(stock, "1M")
+    
+    
+    # Placeholder
+    return HttpResponse(
+        f"{stock.name} ({stock.ticker})<br>"
+        f"Price: {price} (stale: {price_is_stale})<br>"
+        f"History points: {len(history) if history else 0} (stale: {history_is_stale})"
+    )
+    
+
