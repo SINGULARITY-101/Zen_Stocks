@@ -117,6 +117,43 @@ def get_price_history(stock, range_code) :
 
 
 
+def search_stocks(query) : 
+    """
+    Searches yfinance for tickers matching the query string.
+    Returns a list of dicts: [{'ticker': ..., 'name': ...}, ...]
+    Filtered to NSE (.NS) and BSE (.BO) only.
+    """
+    # Guard against empty searches — no point calling yfinance with nothing.
+    if not query :
+        return []
+
+    
+    try:
+        # Lookup + get_stock() already restricts results to equities only —
+        # no separate quoteType filter needed, unlike our earlier Search() attempt.
+        results_df = yf.Lookup(query).get_stock(count=25)
+    except Exception:
+        return []
+
+    
+    matches = []
+    # .iterrows() lets us loop over a DataFrame row by row.
+    # symbol is the DataFrame's index here (not a regular column) — that's why we unpack it separately from `row`.
+    for symbol, row in results_df.iterrows():
+        if symbol.endswith('.NS') or symbol.endswith('.BO'):
+            matches.append({
+                'ticker': symbol,
+                'name': row.get('shortName', symbol),
+            })
+
+    return matches
+    
+
+
+
+
+
+
 
 
 #----HELPER FUNCTONS-----
