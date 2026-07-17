@@ -1,11 +1,11 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login  # logs a user in by attaching them to the session
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 
 
 from .forms import SignUpForm  # the form we just built
-from .models import Stock
+from .models import Stock, StockHistoryCache
 from .services import get_current_price, get_price_history, fetch_stock_name # all api calls exist here
 
 
@@ -129,11 +129,11 @@ def dashboard(request) :
 
 """
 stock_detail view
-- Displays a specific stock's data. Contains the chart and the prices 
+- Creates the Stock row in the model and Displays a specific stock's data. Contains the default chart (1M) and the prices 
 - Executed when : 
     - User selects a stock from the search 
     - User selects a stock from their dashboard 
-    
+
 """
 
 
@@ -169,3 +169,55 @@ def stock_detail(request, ticker) :
     )
     
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"""
+stock_history view 
+- This will be our chart data endpoint 
+- It will give the JS the JSON data required to redraw the chart without reloading the entire stock_detail view
+
+"""
+
+
+def stock_history(request, ticker, range_code) : 
+    
+    # Validate range_code against the same choices already defined on the model 
+    valid_ranges = [choice[0] for choice in StockHistoryCache.RANGE_CHOICES]
+    
+    if range_code not in valid_ranges:
+        # status=400 = "Bad Request" — tells the JS that the request itself was malformed, not that the server broke.
+        return JsonResponse({'error': 'Invalid range'}, status=400)
+    
+    # get_object_or_404: like Stock.objects.get(), but returns a proper 404
+    # automatically instead of raising an unhandled exception if no matching Stock exists. 
+    # We use a plain lookup (not get_or_create) here because this endpoint should only ever get hit AFTER stock_detail already
+    # created the Stock row — this isn't a creation point.
+    stock = get_object_or_404(Stock, ticker = ticker)
+    
+    # Get the price history of the stock for the new range
+    data, is_stale = get_price_history(stock, range_code)
+
+    # JsonResponse serializes this dict into actual JSON text and sets the
+    # correct Content-Type header for us — this is what JavaScript will
+    # eventually call via fetch() to redraw the chart.
+    return JsonResponse({
+        'ticker': stock.ticker,
+        'range': range_code,
+        'data': data,
+        'is_stale': is_stale,
+    })

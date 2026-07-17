@@ -22,5 +22,6 @@ urlpatterns = [
     path('signup/', views.signup_view, name='signup'),
     path('', views.home, name = 'home'), 
     path('dashboard/', views.dashboard, name = 'dashboard'), 
-    path('stock/<str:ticker>/', views.stock_detail, name='stock_detail')
+    path('stock/<str:ticker>/', views.stock_detail, name='stock_detail'), 
+    path('stock/<str:ticker>/history/<str:range_code>/', views.stock_history, name='stock_history')
 ]
