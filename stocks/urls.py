@@ -19,9 +19,15 @@ The path() function defines the following:
 
 
 urlpatterns = [
-    path('signup/', views.signup_view, name='signup'),
     path('', views.home, name = 'home'), 
+    path('signup/', views.signup_view, name='signup'),
+        
     path('dashboard/', views.dashboard, name = 'dashboard'), 
+    
     path('stock/<str:ticker>/', views.stock_detail, name='stock_detail'), 
-    path('stock/<str:ticker>/history/<str:range_code>/', views.stock_history, name='stock_history')
+    path('stock/<str:ticker>/history/<str:range_code>/', views.stock_history, name='stock_history'), 
+    
+    path('watchlist/', views.watchlist_view, name='watchlist_view'),
+    path('watchlist/add/<str:ticker>/', views.watchlist_add, name='watchlist_add'),
+    path('watchlist/remove/<str:ticker>/', views.watchlist_remove, name='watchlist_remove')
 ]

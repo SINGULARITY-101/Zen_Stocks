@@ -5,7 +5,7 @@ from django.http import HttpResponse, JsonResponse
 
 
 from .forms import SignUpForm  # the form we just built
-from .models import Stock, StockHistoryCache
+from .models import Stock, StockHistoryCache, WatchlistItem
 from .services import get_current_price, get_price_history, fetch_stock_name # all api calls exist here
 
 
@@ -126,6 +126,16 @@ def dashboard(request) :
 
 
 
+##############################################################################################################
+
+
+
+
+
+
+
+
+
 
 """
 stock_detail view
@@ -177,15 +187,6 @@ def stock_detail(request, ticker) :
 
 
 
-
-
-
-
-
-
-
-
-
 """
 stock_history view 
 - This will be our chart data endpoint 
@@ -221,3 +222,137 @@ def stock_history(request, ticker, range_code) :
         'data': data,
         'is_stale': is_stale,
     })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#################################################################################################################
+
+
+
+
+
+
+
+
+
+"""
+watchlist views 
+- 3 distinct views serving separate functions 
+    1) watchlist_add : Adds a stock to the user's watchlist
+    2) watchlist_remove : Removes the stock from the user's watchlist
+    3) watchlist_view : Returns all the stocks in the user's watchlist 
+    
+"""
+
+@login_required
+def watchlist_view(request) : 
+    # Filters WatchlistItem down to ONLY the logged-in user's rows
+    items = WatchlistItem.objects.filter(user = request.user)
+    
+    # Build a simple placeholder response listing tickers
+    tickers = ", ".join(item.stock.ticker for item in items)
+    return HttpResponse(f"Your watchlist: {tickers if tickers else '(empty)'}")
+
+
+
+
+
+
+@login_required 
+def watchlist_add(request, ticker) :
+    
+    # The get_or_create() handles both cases : 
+        # 1) User added a stock to watchlist directly from the search without visiting the stock_detail page : 
+        #    - In this case, the stock might not exist in the model and will need to be created 
+        # 2) User visited the stock_detail page AND then added a stock to watchlist
+        #    - In this case, the stock will exist in the model since the stock_detail page handles the creation of the row 
+    stock, created = Stock.objects.get_or_create(
+        ticker = ticker, 
+        defaults = {'name', ticker}     # temporary placeholder name, replaced below if newly created     
+    )                                              
+    
+    
+    
+    # IF a new row was created : GET the long_name of the stock 
+    if created : 
+        long_name = fetch_stock_name(ticker)
+        if long_name : 
+            stock.name = long_name 
+            stock.save()
+    
+    
+    # Adding the stock to the watchlist 
+    # The get_or_create() handles a different function here : 
+        # Prevents duplicate watchlist rows if user clicks "add" multiple times
+    WatchlistItem.objects.get_or_create(
+        user = request.user, 
+        stock = stock
+    )
+            
+
+    # After adding, send the user back to the stock's detail page —
+    # 'stock_detail' is the URL name, and it needs the ticker
+    # passed as a keyword argument since that URL requires one.
+    return redirect('stock_detail', ticker=ticker)
+
+
+
+
+
+
+
+
+
+@login_required
+def watchlist_remove(request, ticker) : 
+    stock = get_object_or_404(Stock, ticker = ticker)
+    
+    # filter().delete() instead of get().delete()
+    # If for some reason the WatchlistItem does not exist, filter() just deletes zero rows silently rather than raising an error
+    WatchlistItem.objects.filter(user=request.user, stock=stock).delete()
+    
+    return redirect('stock_detail', ticker=ticker)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
