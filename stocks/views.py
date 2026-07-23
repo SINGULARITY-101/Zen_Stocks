@@ -5,8 +5,10 @@ from django.http import HttpResponse, JsonResponse
 
 
 from .forms import SignUpForm  # the form we just built
-from .models import Stock, StockHistoryCache, WatchlistItem
+from .models import Stock, StockHistoryCache, WatchlistItem, PortfolioHolding
 from .services import get_current_price, get_price_history, fetch_stock_name # all api calls exist here
+
+from decimal import Decimal, InvalidOperation
 
 
 
@@ -256,8 +258,6 @@ def stock_history(request, ticker, range_code) :
 
 
 
-
-
 """
 watchlist views 
 - 3 distinct views serving separate functions 
@@ -328,6 +328,9 @@ def watchlist_add(request, ticker) :
 
 
 
+
+
+
 @login_required
 def watchlist_remove(request, ticker) : 
     stock = get_object_or_404(Stock, ticker = ticker)
@@ -346,6 +349,118 @@ def watchlist_remove(request, ticker) :
     
     
     
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+#######################################################################################################
+
+
+
+
+
+
+
+
+"""
+portfolio views 
+- User will be able to : 
+    - Add stocks to their portfolio 
+        - Weighted average calculated when the same stock is bought multiple times
+        
+    - Remove the stocks from their portfolio 
+        - Partial selling is allowed
+        - The stock in the portfolio stays until it reaches 0
+    
+    - View their whole portfolio
+
+
+NOTE : Currently accepting shares and avg_cost as URL query parameters till we create the template in Phase 4
+     : /portfolio/add/RELIANCE.NS/?shares=10&price=1300
+"""
+
+
+
+
+@login_required
+
+def portfolio_add(request, ticker) : 
+    # The query parameters come back as strings. We will need to convert them ourselves.
+    shares_param = request.GET.get('shares')
+    price_param = request.GET.get('price') 
+    
+    try : 
+        # Will be using Decimal to avoid rounding errors that float introduces 
+        new_shares = Decimal(shares_param)
+        new_cost = Decimal(price_param)
+             
+    except (InvalidOperation, TypeError) : 
+        # InvalidOperation: the string wasn't a valid number (e.g. "abc").
+        # TypeError: the param was missing entirely (None passed to Decimal).
+        return HttpResponse("Invalid or missing shares/avg_cost.", status=400)
+
+    if new_shares <= 0 or new_cost <= 0:
+        return HttpResponse("Shares and cost must be positive.", status=400)
+    
+    
+    
+    # Check if the ticker already exists in the Stock model 
+    stock = Stock.objects.filter(ticker = ticker).first()
+    
+    # Stock does not exist : Check if the ticker is valid
+    if not stock : 
+        long_name = fetch_stock_name(ticker)
+        
+        # Could not find the long_name from yfinance : Ticker is invalid
+        if not long_name : 
+            return HttpResponse("Stock not found.", status=404)
+        
+        # Ticker found : Create the row 
+        stock = Stock.objects.create(ticker = ticker, name = long_name)
+    
+    
+    
+    # Check if the stock is already in the user's portfolio 
+    holding = PortfolioHolding.objects.filter(user = request.user, stock = stock).first()
+    
+    
+    # IF the user already owns the stock : Calculate the weighted average to update the exisitng stock row
+    if holding : 
+        # Weighted average cost — the actual "merge" logic.
+        # Total money already invested + total money just invested,
+        # divided by total shares now held.
+        total_existing_cost = holding.shares * holding.avg_cost
+        total_new_cost = new_shares * new_cost
+        combined_shares = holding.shares + new_shares
+
+        holding.avg_cost = (total_existing_cost + total_new_cost) / combined_shares
+        holding.shares = combined_shares
+        holding.save()
+    
+    # ELSE the user does not already own the stock : Create a new row in their portfolio
+    else : 
+        PortfolioHolding.objects.create(
+            user = request.user, 
+            stock = stock, 
+            shares = new_shares, 
+            avg_cost = new_cost
+        )
+    
+    
+    return redirect('stock_detail', ticker=ticker)
+        
     
     
     
