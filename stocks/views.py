@@ -137,6 +137,11 @@ def dashboard(request) :
 
 
 
+
+
+
+
+
 """
 stock_detail view
 - Creates the Stock row in the model and Displays a specific stock's data. Contains the default chart (1M) and the prices 
@@ -149,20 +154,19 @@ stock_detail view
 
 
 def stock_detail(request, ticker) : 
-    # this is the FIRST time a Stock row might come into existence for this ticker.
-    stock, created = Stock.objects.get_or_create(
-        ticker=ticker,
-        defaults={'name': ticker}  # temporary placeholder name, replaced below if newly created
-    )
-    
-    
-    if created : 
-        # Only spend the extra yfinance call getting the proper long name if this Stock row didn't already exist. 
-        # Existing stocks already have a real name — no need to re-fetch it every visit.
+    # Check if we already have this stock — no validation needed if so,
+    # since a row only ever gets created below AFTER being confirmed real.
+    stock = Stock.objects.filter(ticker=ticker).first()
+
+    if not stock:
+        # Ticker not seen before — validate it's real BEFORE writing anything.
         long_name = fetch_stock_name(ticker)
-        if long_name:
-            stock.name = long_name
-            stock.save()
+        if not long_name:
+            # yfinance couldn't find this ticker at all — don't create a Stock row for garbage input.
+            return HttpResponse("Stock not found.", status=404)
+
+        # Ticker found, create the row in the stock model
+        stock = Stock.objects.create(ticker=ticker, name=long_name)
 
 
 
@@ -178,6 +182,8 @@ def stock_detail(request, ticker) :
         f"History points: {len(history) if history else 0} (stale: {history_is_stale})"
     )
     
+
+
 
 
 
@@ -275,27 +281,27 @@ def watchlist_view(request) :
 
 
 
+
+
+
+
+
+
 @login_required 
 def watchlist_add(request, ticker) :
     
-    # The get_or_create() handles both cases : 
-        # 1) User added a stock to watchlist directly from the search without visiting the stock_detail page : 
-        #    - In this case, the stock might not exist in the model and will need to be created 
-        # 2) User visited the stock_detail page AND then added a stock to watchlist
-        #    - In this case, the stock will exist in the model since the stock_detail page handles the creation of the row 
-    stock, created = Stock.objects.get_or_create(
-        ticker = ticker, 
-        defaults = {'name', ticker}     # temporary placeholder name, replaced below if newly created     
-    )                                              
-    
-    
-    
-    # IF a new row was created : GET the long_name of the stock 
-    if created : 
+    # Same pattern as the fixed stock_detail: look first, don't create blindly.
+    stock = Stock.objects.filter(ticker=ticker).first()
+
+    if not stock:
+        # Ticker not seen before — validate it's real BEFORE writing anything.
         long_name = fetch_stock_name(ticker)
-        if long_name : 
-            stock.name = long_name 
-            stock.save()
+        if not long_name:
+            # Invalid ticker — don't create a Stock row, don't add to watchlist, fail cleanly instead.
+            return HttpResponse("Stock not found.", status=404)
+
+        # Ticker found, create the row in the stock model
+        stock = Stock.objects.create(ticker=ticker, name=long_name)
     
     
     # Adding the stock to the watchlist 
@@ -311,6 +317,8 @@ def watchlist_add(request, ticker) :
     # 'stock_detail' is the URL name, and it needs the ticker
     # passed as a keyword argument since that URL requires one.
     return redirect('stock_detail', ticker=ticker)
+
+
 
 
 
