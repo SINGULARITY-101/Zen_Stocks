@@ -687,7 +687,7 @@ def alert_remove(request, alert_id) :
     # Alerts are identified by their OWN id. This ID is auto-generated in the model by django 
     alert = get_object_or_404(PriceAlert, id = alert_id, user=request.user)
     ticker = alert.stock.ticker  # grab this before deleting, we need it below
-    alert.delete
+    alert.delete()
     
     
     # Redirecting to the appropriate URL
