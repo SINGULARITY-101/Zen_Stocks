@@ -5,7 +5,7 @@ from django.http import HttpResponse, JsonResponse
 
 
 from .forms import SignUpForm  # the form we just built
-from .models import Stock, StockHistoryCache, WatchlistItem, PortfolioHolding
+from .models import Stock, StockHistoryCache, WatchlistItem, PortfolioHolding, PriceAlert
 from .services import get_current_price, get_price_history, fetch_stock_name # all api calls exist here
 
 from decimal import Decimal, InvalidOperation
@@ -386,16 +386,19 @@ portfolio views
     - Add stocks to their portfolio 
         - Weighted average calculated when the same stock is bought multiple times
         
-    - Remove the stocks from their portfolio 
+    - Sell the stocks from their portfolio 
         - Partial selling is allowed
         - The stock in the portfolio stays until it reaches 0
     
     - View their whole portfolio and check their net gain/loss
 
 
-NOTE : Currently accepting shares and avg_cost as URL query parameters till we create the template in Phase 4
+
+TODO : Currently accepting shares and avg_cost as URL query parameters till we create the template in Phase 4
      : /portfolio/add/RELIANCE.NS/?shares=10&price=1300
 """
+
+
 
 
 
@@ -445,8 +448,7 @@ def portfolio_add(request, ticker) :
     # IF the user already owns the stock : Calculate the weighted average to update the exisitng stock row
     if holding : 
         # Weighted average cost — the actual "merge" logic.
-        # Total money already invested + total money just invested,
-        # divided by total shares now held.
+        # Total money already invested + total money just invested / total shares now held.
         total_existing_cost = holding.shares * holding.avg_cost
         total_new_cost = new_shares * new_cost
         combined_shares = holding.shares + new_shares
@@ -494,6 +496,8 @@ def portfolio_remove(request, ticker) :
 
     if sell_shares <= 0:
         return HttpResponse("Shares must be positive.", status=400)
+    
+    
     
     # Fetch the stock details from the Stock model
     # Fetch the portfolio details for that stock from the user's portfolio 
@@ -558,3 +562,162 @@ def portfolio_view(request) :
             
 
     return HttpResponse("<br>".join(lines) if lines else "Your portfolio is empty.")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##########################################################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"""
+Price Alert Views
+- alert_add : User will add the stock they want price alerts for 
+- alert_remove : User will remove the stock they don't want price alerts for
+- alert_view : All price alerts the user has added
+
+
+- An email will be sent whenever the price goes ABOVE or BELOW the target price
+
+
+
+
+TODO : The checking of price alerts and the notifcations will be done in PHASE 6
+     : Initially accepting target price and direction as URL query parameters. Will update it later to take form input.
+"""
+
+
+
+
+
+@login_required
+
+def alert_add(request, ticker) : 
+    # Get the URL query parameters
+    target_param = request.GET.get('target_price')
+    direction_param = request.GET.get('direction')
+
+    # Input Validation
+    try:
+        target_price = Decimal(target_param)
+    except (InvalidOperation, TypeError):
+        return HttpResponse("Invalid or missing target_price.", status=400)
+
+    if target_price <= 0:
+        return HttpResponse("target_price must be positive.", status=400)
+
+    # Check whether the direction passed is valid or not
+    if direction_param not in (PriceAlert.ABOVE, PriceAlert.BELOW):
+        return HttpResponse("direction must be 'above' or 'below'.", status=400)
+
+
+
+
+    # Creating a valid stock row in the Stock Model if needed just like how we did it in other views
+    stock = Stock.objects.filter(ticker = ticker).first()
+    if not stock:
+        long_name = fetch_stock_name(ticker)
+        if not long_name:
+            return HttpResponse("Stock not found.", status=404)
+        stock = Stock.objects.create(ticker=ticker, name=long_name)
+
+        
+        
+    
+    # update_or_create: lookup fields identify WHICH alert (user, stock, direction) — defaults are what gets SET, 
+    # whether creating new or updating an existing one
+    PriceAlert.objects.update_or_create(
+        user=request.user,
+        stock=stock,
+        direction=direction_param,
+        defaults={'target_price': target_price, 'is_active': True}
+    )
+    
+
+
+    # Redirecting to the appropriate URL
+    next_url = request.GET.get('next')
+    if next_url:
+        return redirect(next_url)
+    return redirect('stock_detail', ticker=ticker)
+    
+    
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+@login_required
+def alert_remove(request, alert_id) : 
+    # Alerts are identified by their OWN id. This ID is auto-generated in the model by django 
+    alert = get_object_or_404(PriceAlert, id = alert_id, user=request.user)
+    ticker = alert.stock.ticker  # grab this before deleting, we need it below
+    alert.delete
+    
+    
+    # Redirecting to the appropriate URL
+    next_url = request.GET.get('next')
+    if next_url:
+        return redirect(next_url)
+    return redirect('stock_detail', ticker=ticker)
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+@login_required
+def alert_view(request) : 
+    # Will only show alerts that UNTRIGGERED
+    # For UNTRIGGERED alerts : is_active = True will indicate that the alert is still being watched
+    # For TRIGGERED alerts : is_active = False will indicate that the alert is not being watched by the background job
+    alerts = PriceAlert.objects.filter(user = request.user, is_active = True)
+
+    lines = [
+        f"{a.id}: {a.stock.ticker} — alert if {a.direction} ₹{a.target_price}"
+        for a in alerts
+    ]
+    return HttpResponse("<br>".join(lines) if lines else "No active alerts.")

@@ -205,6 +205,11 @@ class PriceAlert(models.Model):
     is_active = models.BooleanField(default=True)   # flip to False once triggered
     created_at = models.DateTimeField(auto_now_add=True)
 
+
+    class Meta : 
+        unique_together = ('user', 'stock', 'direction')
+
+
     def __str__(self):
         return f"{self.user.username}: alert if {self.stock.ticker} goes {self.direction} ${self.target_price}"
 

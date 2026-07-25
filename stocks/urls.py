@@ -34,4 +34,9 @@ urlpatterns = [
     path('portfolio/', views.portfolio_view, name='portfolio_view'), 
     path('portfolio/add/<str:ticker>/', views.portfolio_add, name='portfolio_add'),
     path('portfolio/remove/<str:ticker>/', views.portfolio_remove, name='portfolio_remove'),
+    
+    path('alerts/', views.alert_view, name='alert_view'),
+    path('alert/add/<str:ticker>/', views.alert_add, name='alert_add'),
+    path('alert/remove/<int:alert_id>/', views.alert_remove, name='alert_remove')
+    
 ]
