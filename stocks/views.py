@@ -313,9 +313,11 @@ def watchlist_add(request, ticker) :
     )
             
 
-    # After adding, send the user back to the stock's detail page —
-    # 'stock_detail' is the URL name, and it needs the ticker
-    # passed as a keyword argument since that URL requires one.
+    # Check if the caller specified where to return to. If not, fall back to stock_detail as a sane default.
+    next_url = request.GET.get('next')
+    
+    if next_url:
+        return redirect(next_url)
     return redirect('stock_detail', ticker=ticker)
 
 
@@ -339,6 +341,10 @@ def watchlist_remove(request, ticker) :
     # If for some reason the WatchlistItem does not exist, filter() just deletes zero rows silently rather than raising an error
     WatchlistItem.objects.filter(user=request.user, stock=stock).delete()
     
+    
+    next_url = request.GET.get('next')
+    if next_url:
+        return redirect(next_url)
     return redirect('stock_detail', ticker=ticker)
     
     
@@ -384,7 +390,7 @@ portfolio views
         - Partial selling is allowed
         - The stock in the portfolio stays until it reaches 0
     
-    - View their whole portfolio
+    - View their whole portfolio and check their net gain/loss
 
 
 NOTE : Currently accepting shares and avg_cost as URL query parameters till we create the template in Phase 4
@@ -459,10 +465,59 @@ def portfolio_add(request, ticker) :
         )
     
     
+    
+    next_url = request.GET.get('next')
+    if next_url:
+        return redirect(next_url)
     return redirect('stock_detail', ticker=ticker)
         
     
     
+
+
+
+
+
+
+
+    
+@login_required
+
+def portfolio_remove(request, ticker) : 
+    sell_param = request.GET.get('shares')
+    
+    try:
+        sell_shares = Decimal(sell_param)
+    
+    except (InvalidOperation, TypeError):
+        return HttpResponse("Invalid or missing shares.", status=400)
+
+    if sell_shares <= 0:
+        return HttpResponse("Shares must be positive.", status=400)
+    
+    # Fetch the stock details from the Stock model
+    # Fetch the portfolio details for that stock from the user's portfolio 
+    stock = get_object_or_404(Stock, ticker=ticker)
+    holding = get_object_or_404(PortfolioHolding, user=request.user, stock=stock)
+
+
+    if sell_shares >= holding.shares:
+        # Selling all (or somehow more than) what's held — remove the
+        # holding entirely rather than leaving a zero/negative row.
+        holding.delete()
+    
+    else:
+        # Partial sell: reduce shares, avg_cost stays UNCHANGED.
+        # Selling some shares doesn't change what you paid for the ones you still hold 
+        holding.shares -= sell_shares
+        holding.save()
+    
+    
+
+    next_url = request.GET.get('next')
+    if next_url:
+        return redirect(next_url)
+    return redirect('stock_detail', ticker=ticker)
     
     
     
@@ -476,6 +531,30 @@ def portfolio_add(request, ticker) :
     
     
     
+@login_required
+
+def portfolio_view(request) : 
+    holdings = PortfolioHolding.objects.filter(user=request.user)
+    lines = []
     
-    
-    
+    for holding in holdings : 
+        # Get the price of each stock in their portfolio
+        current_price, is_stale = get_current_price(holding.stock)
+        
+        # Found the current price : calculate the net gain/loss
+        if current_price : 
+            current_value = holding.shares * current_price
+            invested = holding.shares * holding.avg_cost
+            gain_loss = current_value - invested 
+            
+            lines.append(
+                f"{holding.stock.ticker}: {holding.shares} shares @ avg ₹{holding.avg_cost} "
+                f"→ now ₹{current_price} | Gain/Loss: ₹{gain_loss} (stale: {is_stale})"
+            )
+        
+        # Could not find the price
+        else : 
+            lines.append(f"{holding.stock.ticker}: price unavailable")
+            
+
+    return HttpResponse("<br>".join(lines) if lines else "Your portfolio is empty.")

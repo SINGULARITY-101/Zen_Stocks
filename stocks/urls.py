@@ -29,5 +29,9 @@ urlpatterns = [
     
     path('watchlist/', views.watchlist_view, name='watchlist_view'),
     path('watchlist/add/<str:ticker>/', views.watchlist_add, name='watchlist_add'),
-    path('watchlist/remove/<str:ticker>/', views.watchlist_remove, name='watchlist_remove')
+    path('watchlist/remove/<str:ticker>/', views.watchlist_remove, name='watchlist_remove'), 
+    
+    path('portfolio/', views.portfolio_view, name='portfolio_view'), 
+    path('portfolio/add/<str:ticker>/', views.portfolio_add, name='portfolio_add'),
+    path('portfolio/remove/<str:ticker>/', views.portfolio_remove, name='portfolio_remove'),
 ]
