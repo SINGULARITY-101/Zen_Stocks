@@ -58,7 +58,7 @@ ROOT_URLCONF = 'zen_stocks.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],   # by default Django only looks inside each app's own templates/ folder. This line adds a project-wide search path
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -121,9 +121,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
-
-
+# Tell Django where project-level static files live
+STATICFILES_DIRS = [BASE_DIR / 'static']   # add this — separate from STATIC_URL
+STATIC_URL = 'static/'                      # this likely already exists
 
 
 
