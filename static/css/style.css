@@ -1,0 +1,63 @@
+/* ---- Reset & base ---- */
+
+* {
+    margin : 0;
+    padding : 0; 
+    box-sizing: border-box;
+}
+
+
+body {
+    font-family:   'Courier New', Courier, monospace;
+    background-color: #0d0d0d;
+    color: #e0e0e0;
+}
+
+
+
+
+
+
+
+
+
+
+/* ---- Layout: sidebar + main split ---- */
+
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* sidebar gets a fixed width */
+.sidebar {
+    width: 260px;
+    background-color: #1a1a1a;
+    padding: 16px;
+    border-right: 1px solid #333;
+}
+
+/* flex = 1 allows main to take up all remaining space */
+.main {
+    flex : 1; 
+    padding : 24px;
+}
+
+
+
+
+
+
+
+
+
+
+/* ---- Reserved colors: gains/losses only ---- */
+.price-up {
+    color : #00c853; 
+}
+
+
+.price-down {
+    color : #ff5252;
+}

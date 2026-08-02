@@ -1,0 +1,37 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>ZenStocks</title>
+    <!-- Loads our one shared CSS file — path resolves via STATICFILES_DIRS 
+    Better to use {% static %} than hardcoding the URL -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+
+
+
+<body>
+    <div class = "layout">
+        
+        <div class = "sidebar">
+            {% comment %} {% include "sidebar.html" %} — added in Step 3 {% endcomment %}
+        </div>
+        
+        <!-- Every child template injects its content here -->
+        <div class = "main">
+            {% block content %} {% endblock %}
+        </div>
+
+    </div>    
+</body>
+
+
+
+</html>
