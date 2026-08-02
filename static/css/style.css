@@ -1,4 +1,5 @@
 /* ---- Reset & base ---- */
+/* Using alternative Box Model where any width is the width of the visible box on the page */
 
 * {
     margin : 0;
@@ -25,21 +26,20 @@ body {
 /* ---- Layout: sidebar + main split ---- */
 
 .layout {
-    display: flex;
-    min-height: 100vh;
+    display: flex;          /* sidebar and main now sit side by side */
+    min-height: 100vh;      /* 100vh = 100% of viewport height */
 }
 
-/* sidebar gets a fixed width */
 .sidebar {
-    width: 260px;
+    width: 260px;           /* fixed width — always 260px, never grows or shrinks */
     background-color: #1a1a1a;
     padding: 16px;
     border-right: 1px solid #333;
 }
 
-/* flex = 1 allows main to take up all remaining space */
+
 .main {
-    flex : 1; 
+    flex : 1;               /* flex = 1 allows main to take up all remaining space */
     padding : 24px;
 }
 
