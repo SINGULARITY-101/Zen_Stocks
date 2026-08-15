@@ -23,6 +23,10 @@ body {
 
 
 
+
+
+
+
 /* ---- Layout: sidebar + main split ---- */
 
 .layout {
@@ -52,6 +56,13 @@ body {
 
 
 
+
+
+
+
+
+
+
 /* ---- Reserved colors: gains/losses only ---- */
 .price-up {
     color : #00c853; 
@@ -60,4 +71,113 @@ body {
 
 .price-down {
     color : #ff5252;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ---- Auth forms (login/signup) ---- */
+.auth-form {
+    max-width: 320px;
+    margin: 40px auto;   /* centers the box horizontally, pushes down from top */
+}
+
+
+/* Descendant Combinator : 
+The space means "match <h2> anywhere inside an element with class auth-form, no matter how deeply nested." */
+.auth-form h2 {
+    margin-bottom: 20px;
+}
+
+
+.auth-form label {
+    display: block;        /* forces label onto its own line above the input */
+    margin-top: 12px;
+    margin-bottom: 4px;
+    font-size: 14px;
+    color: #999;
+}
+
+
+
+
+/* Targets Django's auto-generated <input> tags by type, since we can't add classes without editing forms.py */
+.auth-form input[type="text"],
+.auth-form input[type="password"],
+.auth-form input[type="email"] {
+    width: 100%;
+    padding: 8px;
+    background-color: #0d0d0d;
+    border: 1px solid #333;
+    color: #e0e0e0;
+    font-family: 'Courier New', monospace;
+    border-radius: 2px;
+}
+
+
+
+
+/* Focus state — user has clicked into the field */
+.auth-form input:focus {
+    outline: none;
+    border-color: #00c853;   /* reuses your green, signals "active" */
+}
+
+
+.auth-form button {
+    margin-top: 20px;
+    width: 100%;
+    padding: 10px;
+    background-color: #00c853;
+    color: #0d0d0d;
+    border: none;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+
+.auth-form button:hover {
+    background-color: #00e676;
+}
+
+.auth-form p {
+    margin-top: 16px;
+    font-size: 14px;
+}
+
+.auth-form a {
+    color: #00c853;
+}
+
+
+
+
+/* ---- Form-level errors (e.g. "invalid credentials") ---- */
+.form-errors {
+    background-color: #2a0d0d;
+    border: 1px solid #ff5252;
+    padding: 10px;
+    margin-bottom: 12px;
+    border-radius: 2px;
+}
+
+.form-errors p {
+    margin: 0;
 }

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class = "auth-form">
+    <h2> Sign Up </h2>
+
+    <form method="post">
+        {% csrf_token %}
+
+        {# SignUpForm's 4 fields: username, email, password1, password2 #}
+        {% for field in form %}
+
+            <label for="{{field.id_for_label}}">{{ field.label }}</label>
+            {{ field }}
+
+
+            {# Per-field errors — e.g. "username already taken" #}
+            {% for error in field.errors %}
+                <p class="price-down">{{ error }}</p>
+            {% endfor %}
+        
+
+        {% endfor %}
+
+        <button type = "submit">Sign Up</button>
+    </form>
+
+    <p>Already have an account? <a href="{% url 'login' %}">Log in</a></p>
+</div>
+
+{% endblock %}
+
