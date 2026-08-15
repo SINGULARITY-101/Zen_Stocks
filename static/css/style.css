@@ -27,7 +27,7 @@ body {
 
 
 
-/* ---- Layout: sidebar + main split ---- */
+/* ------------------------------------ Layout: sidebar + main split ---- ---------------------------------*/
 
 .layout {
     display: flex;          /* sidebar and main now sit side by side */
@@ -63,7 +63,7 @@ body {
 
 
 
-/* ---- Reserved colors: gains/losses only ---- */
+/* ------------------------------------ Reserved colors: gains/losses only --------------------------------- */
 .price-up {
     color : #00c853; 
 }
@@ -92,7 +92,7 @@ body {
 
 
 
-/* ---- Auth forms (login/signup) ---- */
+/* ----------------------------------------- Auth forms (login/signup) ------------------------------------ */
 .auth-form {
     max-width: 320px;
     margin: 40px auto;   /* centers the box horizontally, pushes down from top */
@@ -180,4 +180,86 @@ The space means "match <h2> anywhere inside an element with class auth-form, no 
 
 .form-errors p {
     margin: 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* --------------------------------- Public home page ------------------------------------------------*/
+
+.hero {
+    max-width: 480px;
+    margin: 80px auto;
+    text-align: center;
+}
+
+.hero h1 {
+    font-size: 36px;
+    margin-bottom: 8px;
+}
+
+.tagline {
+    color: #999;
+    margin-bottom: 32px;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+
+
+.btn-primary,
+.btn-secondary {
+    padding: 10px 24px;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    border-radius: 2px;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background-color: #00c853;
+    color: #0d0d0d;
+}
+
+.btn-primary:hover {
+    background-color: #00e676;
+}
+
+.btn-secondary {
+    background-color: transparent;
+    border: 1px solid #333;
+    color: #e0e0e0;
+}
+
+.btn-secondary:hover {
+    border-color: #00c853;
+    color: #00c853;
+}
+
+.hero-note {
+    font-size: 13px;
+    color: #666;
 }
