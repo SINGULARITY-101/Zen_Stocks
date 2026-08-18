@@ -2,6 +2,7 @@ import yfinance as yf
 from datetime import timedelta
 from django.utils import timezone
 from .models import StockPriceCache, StockHistoryCache
+from decimal import Decimal
 
 
 # How long cached data is considered "fresh enough" before we refetch.
@@ -204,8 +205,10 @@ def _fetch_price_from_yfinance(ticker) :
         stock_data = yf.Ticker(ticker) 
         info = stock_data.fast_info
         # Both values come from the same fast_info object — no extra API call needed.
-        return {'price': info['lastPrice'], 'previous_close': info['previousClose']}
-    
+        return {
+            'price': Decimal(str(info['lastPrice'])),
+            'previous_close': Decimal(str(info['previousClose'])),
+        }
     except Exception : 
         return None
 
