@@ -173,7 +173,7 @@ def stock_detail(request, ticker) :
 
 
     # Pull current price + a default range of history, using the service layer we already built and tested 
-    price, price_is_stale = get_current_price(stock)
+    price, previous_close, price_is_stale = get_current_price(stock)
     history, history_is_stale = get_price_history(stock, "1M")
     
     
@@ -543,7 +543,7 @@ def portfolio_view(request) :
     
     for holding in holdings : 
         # Get the price of each stock in their portfolio
-        current_price, is_stale = get_current_price(holding.stock)
+        current_price, previous_close, is_stale = get_current_price(holding.stock)
         
         # Found the current price : calculate the net gain/loss
         if current_price : 

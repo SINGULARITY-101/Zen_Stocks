@@ -16,9 +16,9 @@ HISTORY_STALE_AFTER = timedelta(hours=1)
 
 def get_current_price(stock) : 
     """
-    Returns (price, is_stale) for a given Stock.
+    Returns (price, previous_close, is_stale) for a given Stock.
     is_stale=True means: yfinance failed, so we're serving old cached data.
-    Returns (None, None) if there's no data at all (first-ever fetch also failed).
+    Returns (None, None, None) if there's no data at all.
     """
     
     # .filter().first() instead of .get() — .get() raises an error if no row exists, which we don't want here. 
@@ -27,35 +27,36 @@ def get_current_price(stock) :
     
     # Check Freshness : does a cached row exist AND is it recent enough?
     if cached and (timezone.now() - cached.last_updated) < PRICE_STALE_AFTER : 
-        return (cached.price, False)    # fresh enough, no need to hit yfinance at all
+        return (cached.price, cached.previous_close, False)   # fresh enough, no need to hit yfinance at all
 
 
     
     # Either no cache exists yet, or it's stale — try fetching fresh data.
-    fresh_price = _fetch_price_from_yfinance(stock.ticker)
+    fresh = _fetch_price_from_yfinance(stock.ticker)
 
     # The fetch was successful and we were able to get a fresher price from yfinance 
     # update_or_create: if a StockPriceCache row for this stock exists, update it; otherwise create a new one. 
     # Avoids writing separate "if exists: update, else: create" logic ourselves.
-    if fresh_price is not None : 
+
+    if fresh is not None : 
         StockPriceCache.objects.update_or_create(
             stock = stock, 
-            defaults = {'price': fresh_price}
+            defaults = {'price': fresh['price'], 'previous_close': fresh['previous_close']}
         )
-        return (fresh_price, False)
+        return (fresh['price'], fresh['previous_close'], False)
 
 
 
 
     # The fetch failed. Fall back to the stale cache if we have one
     if cached : 
-        return (cached.price, True)     # stale=True tells the view to trigger the pop-up later
+        return (cached.price, cached.previous_close, True)    # stale=True tells the view to trigger the pop-up later
     
     
     
     
     # No fresh data AND no cache at all - Genuinely nothing to show 
-    return (None, None)
+    return (None, None, None)
 
 
 
@@ -201,11 +202,11 @@ def fetch_stock_name(ticker) :
 def _fetch_price_from_yfinance(ticker) : 
     try : 
         stock_data = yf.Ticker(ticker) 
-        price = stock_data.fast_info['lastPrice']
-        return price 
+        info = stock_data.fast_info
+        # Both values come from the same fast_info object — no extra API call needed.
+        return {'price': info['lastPrice'], 'previous_close': info['previousClose']}
     
     except Exception : 
-        # Catches any faliure
         return None
 
 
