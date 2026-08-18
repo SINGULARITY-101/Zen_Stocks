@@ -247,6 +247,10 @@ class StockPriceCache(models.Model) :
     # max_digits=10, decimal_places=2 → supports up to 99,999,999.99
     price = models.DecimalField(max_digits=10, decimal_places = 2)
     
+    # NEW — yesterday's closing price, needed to compute percent change
+    # null = True because existing rows won't have this value until their next refresh
+    previous_close = models.DecimalField(max_digits=10, decimal_places = 2, null = True)
+    
     # `auto_now = True` updates the row on every save
     last_updated = models.DateTimeField(auto_now = True)
     
