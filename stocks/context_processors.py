@@ -6,7 +6,7 @@
 # NOTE : Has a huge performance cost. Ensure you are not running huge operations in the context processor 
 
 from .models import WatchlistItem
-from .services import get_current_price, get_price_history
+from .services import get_current_price, get_price_history, search_stocks
 
 
 
@@ -69,19 +69,37 @@ def _build_sparkline_points(closes) :
 
 def sidebar_context(request) : 
     """
-    Injects 'sidebar_watchlist' into every template's context.
+    Does several things : 
+    - Injects 'sidebar_watchlist' into every template's context.
+    - Enables sparklines in watchlist items 
+    - Enables searching of stocks within the sidebar itself (available to all without logging in)
+    
     Used by sidebar.html (included in base.html on every page).
     """
     
-    # Anonymous users have no watchlist to query — return an empty list.
-    # sidebar.html will check this + user.is_authenticated to decide
-    # whether to show real rows or the "Log in to view" prompt
+    
+    # ---- SEARCH ----
+    # Reads ?q= from whatever URL the sidebar form was submitted against.
+    # Available regardless of login state — browsing/searching needs no account.
+    query = request.GET.get('q', '').strip()
+    search_results = search_stocks(query) if query else []
+    
+    
+    
+    
+    # ---- WATCHLIST ----
+    # Anonymous users have no watchlist to query — return search data only,empty watchlist. 
+    # sidebar.html shows "Log in to view" for the dropdowns.
     if not request.user.is_authenticated : 
-        return {'sidebar_watchlist': []}
+        return {
+            'sidebar_search_query': query,
+            'sidebar_search_results': search_results,
+            'sidebar_watchlist': [],
+        }
+    
+    
     
     watchlist_data = []
-    
-    
     
     # select_related is a very important performance optimization 
     # Without it, looping over watchlist.all() and accessing item.stock inside would have triggered a separate DB query per item 
@@ -101,7 +119,8 @@ def sidebar_context(request) :
             percent_change = ((price - previous_close) / previous_close) * 100
         
         
-        # Code for fetching the historical data for the SVG lines 
+        # For sparklines in the watchlist
+        # Fetches the historical data -> Sends it to the helper function which generates coordinates for the SVG polyline
         history, history_is_stale = get_price_history(item.stock, '1W')
         sparkline_points = None
         if history:
@@ -118,5 +137,10 @@ def sidebar_context(request) :
             'sparkline_points': sparkline_points,
         })
 
-        return {'sidebar_watchlist': watchlist_data}
+    
+    return {
+        'sidebar_search_query': query,
+        'sidebar_search_results': search_results,
+        'sidebar_watchlist': watchlist_data,
+    }
         
