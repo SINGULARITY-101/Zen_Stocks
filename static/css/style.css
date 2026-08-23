@@ -263,3 +263,159 @@ The space means "match <h2> anywhere inside an element with class auth-form, no 
     font-size: 13px;
     color: #666;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* --------------------------------- SIDEBAR ------------------------------------------------*/
+
+/* ---- Sidebar search ---- */
+.sidebar-search input {
+    width: 100%;
+    padding: 8px;
+    background-color: #0d0d0d;
+    border: 1px solid #333;
+    color: #e0e0e0;
+    font-family: 'Courier New', monospace;
+    margin-bottom: 16px;
+}
+
+
+
+/* ---- Section labels ---- */
+.sidebar-label {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.sidebar-empty,
+.sidebar-locked {
+    font-size: 13px;
+    color: #666;
+}
+
+
+
+
+
+
+/* ---- Watchlist rows ---- */
+.watchlist-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #222;
+    text-decoration: none;
+    color: inherit;
+}
+
+.ticker {
+    display: block;
+    font-weight: bold;
+}
+
+.price {
+    color: #999;
+    margin-right: 6px;
+}
+
+.sparkline {
+    width: 50px;
+    height: 18px;
+}
+
+.spark-up {
+    fill: none;
+    stroke: #00c853;
+    stroke-width: 1.5;
+}
+
+.spark-down {
+    fill: none;
+    stroke: #ff5252;
+    stroke-width: 1.5;
+}
+
+
+
+
+
+
+/* ---- Search results ---- */
+.search-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #222;
+}
+
+.stock-name {
+    display: block;
+    font-size: 12px;
+    color: #666;
+}
+
+.add-btn {
+    color: #00c853;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 2px 8px;
+    border: 1px solid #00c853;
+    border-radius: 2px;
+}
+
+.add-btn:hover {
+    background-color: #00c853;
+    color: #0d0d0d;
+}
+
+
+
+
+
+
+
+/* ---- Portfolio/alerts accordions ---- */
+.sidebar-accordion {
+    margin-top: 16px;
+    border-top: 1px solid #222;
+    padding-top: 12px;
+}
+
+.sidebar-accordion summary {
+    cursor: pointer;
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+}
+
+
+
+
+.placeholder-text {
+    color: #666;
+    text-align: center;
+    margin-top: 80px;
+}

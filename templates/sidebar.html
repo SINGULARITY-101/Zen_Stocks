@@ -1,0 +1,110 @@
+{# ---- SEARCH ---- #}
+<form method="get" action="" class="sidebar-search">
+    <input type="text" name="q" value="{{ sidebar_search_query }}" placeholder="search ticker...">
+</form>
+
+
+{% comment %} if sidebar_search_query is present, show search results instead of the watchlist; otherwise show the watchlist. {% endcomment %}
+
+{% if sidebar_search_query %}
+    {# ---- SEARCH RESULTS ---- #}
+    <div class="sidebar-section">
+        <span class="sidebar-label">results</span>
+        
+        {% for result in sidebar_search_results %}
+            <div class="search-row">
+                <div>
+                    <span class="ticker">{{ result.ticker }}</span>
+                    <span class="stock-name">{{ result.name }}</span>
+                </div>
+                <a href="{% url 'watchlist_add' ticker=result.ticker %}?next={{ request.path }}" class="add-btn">+</a>
+            </div>
+        
+        {% empty %}
+            <p class="sidebar-empty">No matches found.</p>
+        {% endfor %}
+    
+    </div>
+
+
+
+
+{% else %}
+    {# ---- WATCHLIST ---- #}
+    <div class = "sidebar-section">
+        <span class="sidebar-label">watchlist</span>
+
+        {% if user.is_authenticated %}
+            
+            {% for item in sidebar_watchlist %}
+                <a href="{% url 'stock_detail' ticker=item.stock.ticker %}" class="watchlist-row">
+                    <div>
+                        <span class = "ticker"> {{item.stock.ticker}} </span>
+                        
+                        {% if item.price %}
+                            <span class="price">{{ item.price }}</span>
+                            
+                            {% if item.percent_change is not None %}
+                                <span class="{% if item.percent_change >= 0 %} price-up {% else %} price-down {% endif %}">
+                                    {{ item.percent_change|floatformat:2 }}%
+                                </span>
+                            {% endif %}
+
+                        {% else %}
+                            <span class="sidebar-empty">price unavailable</span>
+                        {% endif %}
+
+                    </div>
+
+
+                    {% if item.sparkline_points %}
+                        
+                        <svg viewBox="0 0 60 20" class="sparkline">
+                            <polyline points="{{ item.sparkline_points }}"
+                                class="{% if item.percent_change >= 0 %}spark-up{% else %}spark-down{% endif %}" />
+                        </svg>
+                    
+                    {% endif %}
+                
+                </a>
+            
+            {% empty %}
+                <p class="sidebar-empty">Your watchlist is empty. Search above to add stocks.</p>
+            {% endfor %}
+        
+
+
+        {% else %}
+                <p class="sidebar-locked">Log in to build your watchlist.</p>
+        {% endif %}  
+
+    </div>
+
+{% endif %}
+
+
+
+
+
+
+{# -------------- PORTFOLIO ---------------- #}
+<details class="sidebar-accordion">
+    <summary>portfolio</summary>
+    {% if user.is_authenticated %}
+        <p class="sidebar-empty">Coming soon.</p>
+    {% else %}
+        <p class="sidebar-locked">Log in to view.</p>
+    {% endif %}
+</details>
+
+
+
+{# -------------  ALERTS ---------------------- #}
+<details class="sidebar-accordion">
+    <summary>alerts</summary>
+    {% if user.is_authenticated %}
+        <p class="sidebar-empty">Coming soon.</p>
+    {% else %}
+        <p class="sidebar-locked">Log in to view.</p>
+    {% endif %}
+</details>

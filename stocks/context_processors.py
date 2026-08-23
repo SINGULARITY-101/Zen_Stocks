@@ -20,8 +20,7 @@ SPARKLINE_HEIGHT = 20
 
 def _build_sparkline_points(closes) : 
     """
-    Converts a list of closing prices into an SVG <polyline points="..."> string,
-    scaled to fit a SPARKLINE_WIDTH x SPARKLINE_HEIGHT box.
+    Converts a list of closing prices into an SVG <polyline points="..."> string, scaled to fit a SPARKLINE_WIDTH x SPARKLINE_HEIGHT box.
     Returns None if there isn't enough data to draw a line (need at least 2 points).
     """
     if not closes or len(closes) < 2 : 
@@ -69,10 +68,10 @@ def _build_sparkline_points(closes) :
 
 def sidebar_context(request) : 
     """
-    Does several things : 
-    - Injects 'sidebar_watchlist' into every template's context.
-    - Enables sparklines in watchlist items 
-    - Enables searching of stocks within the sidebar itself (available to all without logging in)
+    Injects sidebar data into every template's context : 
+    - Search Results 
+    - All watchlist items
+    - Sparklines for the watchlist items
     
     Used by sidebar.html (included in base.html on every page).
     """
@@ -119,6 +118,7 @@ def sidebar_context(request) :
             percent_change = ((price - previous_close) / previous_close) * 100
         
         
+        # ---- SPARKLINES ----
         # For sparklines in the watchlist
         # Fetches the historical data -> Sends it to the helper function which generates coordinates for the SVG polyline
         history, history_is_stale = get_price_history(item.stock, '1W')

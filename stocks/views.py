@@ -113,9 +113,7 @@ dashboard view
     # If they're not → Django auto-redirects them to your login page, and dashboard's code never executes at all 
 @login_required
 def dashboard(request) : 
-    # request.user.username is available because Django's auth system resolved who this user is
-    # before the function even runs
-    return HttpResponse(f"Welcome to your dashboard : {request.user.username}!")
+    return render(request, 'stocks/dashboard.html')
 
 
 
