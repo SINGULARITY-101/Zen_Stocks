@@ -36,42 +36,40 @@
 
         {% if user.is_authenticated %}
             
-            {% for item in sidebar_watchlist %}
-                <a href="{% url 'stock_detail' ticker=item.stock.ticker %}" class="watchlist-row">
+        {% for item in sidebar_watchlist %}
+            <div class="watchlist-row">
+                <a href="{% url 'stock_detail' ticker=item.stock.ticker %}" class="watchlist-row-link">
                     <div>
-                        <span class = "ticker"> {{item.stock.ticker}} </span>
-                        
+                        <span class="ticker">{{ item.stock.ticker }}</span>
                         {% if item.price %}
                             <span class="price">{{ item.price }}</span>
                             
                             {% if item.percent_change is not None %}
-                                <span class="{% if item.percent_change >= 0 %} price-up {% else %} price-down {% endif %}">
+                                <span class="{% if item.percent_change >= 0 %}price-up{% else %}price-down{% endif %}">
                                     {{ item.percent_change|floatformat:2 }}%
                                 </span>
                             {% endif %}
-
+                        
                         {% else %}
                             <span class="sidebar-empty">price unavailable</span>
                         {% endif %}
-
                     </div>
 
 
                     {% if item.sparkline_points %}
-                        
                         <svg viewBox="0 0 60 20" class="sparkline">
                             <polyline points="{{ item.sparkline_points }}"
                                 class="{% if item.percent_change >= 0 %}spark-up{% else %}spark-down{% endif %}" />
                         </svg>
-                    
                     {% endif %}
-                
                 </a>
-            
-            {% empty %}
-                <p class="sidebar-empty">Your watchlist is empty. Search above to add stocks.</p>
-            {% endfor %}
+
+                <a href="{% url 'watchlist_remove' ticker=item.stock.ticker %}?next={{ request.path }}" class="remove-btn">x</a>
+            </div>
         
+        {% empty %}
+            <p class="sidebar-empty">Your watchlist is empty. Search above to add stocks.</p>
+        {% endfor %}
 
 
         {% else %}

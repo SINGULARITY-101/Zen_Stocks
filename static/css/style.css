@@ -333,15 +333,26 @@ The space means "match <h2> anywhere inside an element with class auth-form, no 
 
 
 /* ---- Watchlist rows ---- */
+/* Outer row: now just a flex wrapper for [link + remove button] */
 .watchlist-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 8px 0;
     border-bottom: 1px solid #222;
+}
+
+
+/* The clickable stock-detail link — takes over what .watchlist-row used to do */
+.watchlist-row-link {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex: 1;
     text-decoration: none;
     color: inherit;
 }
+
 
 .ticker {
     display: block;
@@ -371,6 +382,18 @@ The space means "match <h2> anywhere inside an element with class auth-form, no 
 }
 
 
+/* Remove button */
+.remove-btn {
+    color: #666;
+    text-decoration: none;
+    font-size: 16px;
+    padding: 0 4px;
+    margin-left: 4px;
+}
+
+.remove-btn:hover {
+    color: #ff5252;
+}
 
 
 
