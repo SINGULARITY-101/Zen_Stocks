@@ -2,7 +2,7 @@ import yfinance as yf
 from datetime import timedelta
 from django.utils import timezone
 from .models import StockPriceCache, StockHistoryCache
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 
 
 # How long cached data is considered "fresh enough" before we refetch.
@@ -204,11 +204,14 @@ def _fetch_price_from_yfinance(ticker) :
     try : 
         stock_data = yf.Ticker(ticker) 
         info = stock_data.fast_info
-        # Both values come from the same fast_info object — no extra API call needed.
-        return {
-            'price': Decimal(str(info['lastPrice'])),
-            'previous_close': Decimal(str(info['previousClose'])),
-        }
+        
+        # quantize explicitly rounds to 2 decimal places — don't rely on the DB column's numeric(10,2) constraint to do this later, since the
+        # in-memory value gets used (and displayed) before that save happens.
+        price = Decimal(str(info['lastPrice'])).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        previous_close = Decimal(str(info['previousClose'])).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        
+        return {'price': price, 'previous_close': previous_close}
+    
     except Exception : 
         return None
 

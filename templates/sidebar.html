@@ -13,10 +13,10 @@
         
         {% for result in sidebar_search_results %}
             <div class="search-row">
-                <div>
+                <a href="{% url 'stock_detail' ticker=result.ticker %}" class="search-row-link">
                     <span class="ticker">{{ result.ticker }}</span>
                     <span class="stock-name">{{ result.name }}</span>
-                </div>
+                </a>
                 <a href="{% url 'watchlist_add' ticker=result.ticker %}?next={{ request.path }}" class="add-btn">+</a>
             </div>
         
@@ -108,3 +108,16 @@
         <p class="sidebar-locked">Log in to view.</p>
     {% endif %}
 </details>
+
+
+
+
+
+{# -------------  LOGOUT ---------------------- #}
+
+{% if user.is_authenticated %}
+    <form method="post" action="{% url 'logout' %}" class="logout-form">
+        {% csrf_token %}
+        <button type="submit" class="logout-btn">Log out ({{ user.username }})</button>
+    </form>
+{% endif %}

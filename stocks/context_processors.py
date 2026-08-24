@@ -121,7 +121,7 @@ def sidebar_context(request) :
         # ---- SPARKLINES ----
         # For sparklines in the watchlist
         # Fetches the historical data -> Sends it to the helper function which generates coordinates for the SVG polyline
-        history, history_is_stale = get_price_history(item.stock, '1W')
+        history, history_is_stale = get_price_history(item.stock, '1M')
         sparkline_points = None
         if history:
             closes = [entry['close'] for entry in history]

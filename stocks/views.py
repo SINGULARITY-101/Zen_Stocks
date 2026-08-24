@@ -146,8 +146,7 @@ def dashboard(request) :
 stock_detail view
 - Creates the Stock row in the model and Displays a specific stock's data. Contains the default chart (1M) and the prices 
 - Executed when : 
-    - User selects a stock from the search 
-    - User selects a stock from their dashboard 
+    - User selects a stock from the search, watchlist, or portfolio 
 
 """
 

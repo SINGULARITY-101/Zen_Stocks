@@ -35,10 +35,13 @@ body {
 }
 
 .sidebar {
-    width: 260px;           /* fixed width — always 260px, never grows or shrinks */
+    width: 260px;
     background-color: #1a1a1a;
     padding: 16px;
     border-right: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;   /* ensures it stretches to fill screen height even with little content */
 }
 
 
@@ -298,6 +301,16 @@ The space means "match <h2> anywhere inside an element with class auth-form, no 
 }
 
 
+.search-row-link {
+    text-decoration: none;
+    color: inherit;
+    flex: 1;
+}
+
+
+
+
+
 
 /* ---- Section labels ---- */
 .sidebar-label {
@@ -362,6 +375,8 @@ The space means "match <h2> anywhere inside an element with class auth-form, no 
 
 
 
+
+
 /* ---- Search results ---- */
 .search-row {
     display: flex;
@@ -410,6 +425,39 @@ The space means "match <h2> anywhere inside an element with class auth-form, no 
     color: #666;
     text-transform: uppercase;
 }
+
+
+
+
+
+
+/* ---- Logout Button ---- */
+.logout-form {
+    margin-top: auto;   /* changed from a fixed margin-top: 24px */
+    border-top: 1px solid #222;
+    padding-top: 12px;
+}
+
+.logout-btn {
+    background: none;
+    border: none;
+    color: #666;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 0;
+}
+
+.logout-btn:hover {
+    color: #ff5252;
+}
+
+
+
+
+
+
+
 
 
 
