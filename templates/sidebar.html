@@ -32,7 +32,15 @@
 {% else %}
     {# ---- WATCHLIST ---- #}
     <div class = "sidebar-section">
-        <span class="sidebar-label">watchlist</span>
+        
+        {# Header row: "watchlist" on the left, the sparkline's range on the right #}
+        <div class="sidebar-section-header">
+            <span class="sidebar-label">watchlist</span>
+            {# Only show the range when there are sparklines to describe #}
+            {% if user.is_authenticated and sidebar_watchlist %}
+                <span class="sidebar-label">{{ sidebar_sparkline_range }}</span>
+            {% endif %}
+        </div>
 
         {% if user.is_authenticated %}
             
@@ -60,7 +68,7 @@
                     {% if item.sparkline_points %}
                         <svg viewBox="0 0 60 20" class="sparkline">
                             <polyline points="{{ item.sparkline_points }}"
-                                class="{% if item.percent_change >= 0 %}spark-up{% else %}spark-down{% endif %}" />
+                                class="{% if item.sparkline_trend == 'up' %}spark-up{% else %}spark-down{% endif %}"" />
                         </svg>
                     {% endif %}
                 </a>

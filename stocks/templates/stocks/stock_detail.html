@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {# TEMPORARY: just proves the view is passing the right data #}
+    <p>{{ stock.ticker }}: {{ price }} ({{ percent_change|floatformat:2 }}%)</p>
+    <p>Range: {{ selected_range }} | watched: {{ is_watched }}</p>
+    <p>Chart points string length: {{ chart.points|length }} | trend: {{ chart.trend }}</p>
+{% endblock %}

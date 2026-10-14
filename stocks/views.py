@@ -7,10 +7,14 @@ from django.http import HttpResponse, JsonResponse
 from .forms import SignUpForm  # the form we just built
 from .models import Stock, StockHistoryCache, WatchlistItem, PortfolioHolding, PriceAlert
 from .services import get_current_price, get_price_history, fetch_stock_name # all api calls exist here
+from .chart_utils import build_polyline_points
 
 from decimal import Decimal, InvalidOperation
 
-
+# Size of the big chart that will be displayed when the user selects a stock from the search, watchlist, or portfolio 
+CHART_WIDTH = 600
+CHART_HEIGHT = 240
+CHART_PADDING = 8   # inner margin so the line doesn't touch the edges
 
 
 
@@ -153,6 +157,7 @@ stock_detail view
 
 
 def stock_detail(request, ticker) : 
+    #--------STOCK ROW CREATION----------#
     # Check if we already have this stock — no validation needed if so,
     # since a row only ever gets created below AFTER being confirmed real.
     stock = Stock.objects.filter(ticker=ticker).first()
@@ -169,18 +174,83 @@ def stock_detail(request, ticker) :
 
 
 
-    # Pull current price + a default range of history, using the service layer we already built and tested 
+    #----------TIME RANGE SELECTED FOR STOCK HISTORY-----------# 
+    # Range buttons are links like ?range=6M, so it arrives in the URL query string
+    # Validate against the model's accepted list of ranges to avoid garbage ranges
+    valid_ranges = [choice[0] for choice in StockHistoryCache.RANGE_CHOICES]
+    selected_range = request.GET.get('range', '1M')     # default 1M if not given
+
+    if selected_range not in valid_ranges:
+        selected_range = '1M'                           # invalid value: fall back to default
+
+
+
+
+
+    #----------PRICE HEADER : current price + today's percent change----------#
     price, previous_close, price_is_stale = get_current_price(stock)
-    history, history_is_stale = get_price_history(stock, "1M")
+    
+    percent_change = None
+    if price is not None and previous_close:
+        percent_change = ((price - previous_close) / previous_close) * 100
+
+
     
     
-    # Placeholder
-    return HttpResponse(
-        f"{stock.name} ({stock.ticker})<br>"
-        f"Price: {price} (stale: {price_is_stale})<br>"
-        f"History points: {len(history) if history else 0} (stale: {history_is_stale})"
-    )
     
+    # ------ CHART: history for the chosen range, converted to SVG coordinates ------#
+    history, history_is_stale = get_price_history(stock, selected_range)
+    
+    chart = None    # stays None if there's no usable history; the template shows "chart unavailable"
+    
+    if history:
+        closes = [entry['close'] for entry in history]
+        points = build_polyline_points(closes, CHART_WIDTH, CHART_HEIGHT, CHART_PADDING)
+
+        # points is None when there are fewer than 2 data points (nothing to draw a line between)
+        if points:
+            chart = {
+                'points': points,
+                'width': CHART_WIDTH,           # the template needs these for the SVG viewBox
+                'height': CHART_HEIGHT,
+                'min_price': min(closes),       # shown as plain HTML labels around the chart
+                'max_price': max(closes),
+                'first_date': history[0]['date'],
+                'last_date': history[-1]['date'],
+                # Line color reflects how the stock did over THIS range (first close vs last close),
+                # not today's change. A stock can be down today but up over 6 months.
+                'trend': 'up' if closes[-1] >= closes[0] else 'down',
+            }
+    
+    
+    
+    
+    # --- Is this stock on the logged-in user's watchlist? (drives the add/remove button) ---
+    # Anonymous users can't have a watchlist, and querying with an anonymous user would error.
+    is_watched = False
+    
+    if request.user.is_authenticated:
+        is_watched = WatchlistItem.objects.filter(user=request.user, stock=stock).exists()
+
+
+    return render(request, 'stocks/stock_detail.html', {
+        'stock': stock,
+        'price': price,
+        'percent_change': percent_change,
+        'price_is_stale': price_is_stale,
+        'selected_range': selected_range,
+        'ranges': StockHistoryCache.RANGE_CHOICES,   # [('1W','1 Week'), ...] for the buttons
+        'chart': chart,
+        'history_is_stale': history_is_stale,
+        'is_watched': is_watched,
+    })
+    
+    
+    
+    
+
+    
+
 
 
 

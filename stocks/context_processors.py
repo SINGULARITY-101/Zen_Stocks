@@ -14,6 +14,7 @@ from .chart_utils import build_polyline_points
 
 SPARKLINE_WIDTH = 60
 SPARKLINE_HEIGHT = 20 
+SPARKLINE_RANGE = '1M'
 
 
 
@@ -84,11 +85,13 @@ def sidebar_context(request) :
         # ---- SPARKLINES ----
         # For sparklines in the watchlist
         # Fetches the historical data -> Sends it to the helper function which generates coordinates for the SVG polyline
-        history, history_is_stale = get_price_history(item.stock, '1M')
+        history, history_is_stale = get_price_history(item.stock, SPARKLINE_RANGE)
         sparkline_points = None
+        
         if history:
             closes = [entry['close'] for entry in history]
             sparkline_points = build_polyline_points(closes, SPARKLINE_WIDTH, SPARKLINE_HEIGHT)
+            sparkline_trend = 'up' if closes[-1] >= closes[0] else 'down'
 
         
 
@@ -98,6 +101,7 @@ def sidebar_context(request) :
             'percent_change': percent_change,
             'is_stale': is_stale,
             'sparkline_points': sparkline_points,
+            'sparkline_trend' : sparkline_trend,
         })
 
     
@@ -105,5 +109,6 @@ def sidebar_context(request) :
         'sidebar_search_query': query,
         'sidebar_search_results': search_results,
         'sidebar_watchlist': watchlist_data,
+        'sidebar_sparkline_range': SPARKLINE_RANGE,
     }
         

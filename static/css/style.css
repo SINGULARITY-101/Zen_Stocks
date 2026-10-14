@@ -289,6 +289,25 @@ The space means "match <h2> anywhere inside an element with class auth-form, no 
 
 /* --------------------------------- SIDEBAR ------------------------------------------------*/
 
+/* Header row: pushes "watchlist" left and the range label right */
+.sidebar-section-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    padding-right: 24px;   /* shifts the "1M" left so it sits above the sparklines, not above the × buttons */
+}
+
+/* The label's own bottom margin would double up inside the header */
+.sidebar-section-header .sidebar-label {
+    margin-bottom: 0;
+}
+
+
+
+
+
+
+
 /* ---- Sidebar search ---- */
 .sidebar-search input {
     width: 100%;
