@@ -38,6 +38,7 @@
             
         {% for item in sidebar_watchlist %}
             <div class="watchlist-row">
+                
                 <a href="{% url 'stock_detail' ticker=item.stock.ticker %}" class="watchlist-row-link">
                     <div>
                         <span class="ticker">{{ item.stock.ticker }}</span>
